@@ -1,0 +1,77 @@
+{
+  "part_name": "castellated_ring",
+  "description": "範例：類似 KE-BH-072 的環狀零件 — 外徑 80, 內孔 45, 厚 22, 4 槽 + 4 螺紋孔",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "outer_cylinder",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [
+          {"type": "circle", "center": [0, 0], "radius": 40}
+        ]
+      },
+      "length": 22
+    },
+    "features": [
+      {
+        "type": "Pocket",
+        "name": "inner_bore",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [
+            {"type": "circle", "center": [0, 0], "radius": 22.5}
+          ]
+        },
+        "through_all": true
+      },
+      {
+        "type": "Pocket",
+        "name": "top_notch",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [
+            {"type": "rectangle", "center": [35, 0], "width": 20, "height": 8}
+          ]
+        },
+        "depth": 5
+      },
+      {
+        "type": "PolarPattern",
+        "name": "top_notch_array",
+        "source_features": ["top_notch"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 4
+      },
+      {
+        "type": "Hole",
+        "name": "top_thread",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [
+            {"type": "point", "xy": [0, 30]}
+          ]
+        },
+        "thread": {"size": "M4", "class": "6H"},
+        "depth": 10
+      },
+      {
+        "type": "PolarPattern",
+        "name": "top_thread_array",
+        "source_features": ["top_thread"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 4
+      },
+      {
+        "type": "Chamfer",
+        "name": "top_chamfer",
+        "edges": ["top_outer"],
+        "size": 0.5,
+        "angle": 45
+      }
+    ]
+  }
+}

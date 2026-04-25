@@ -1,0 +1,31 @@
+{
+  "part_name": "stepped_shaft",
+  "description": "範例：階梯軸 (Revolution 起始) — 總長 80, ⌀20→⌀15→⌀20",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Revolution",
+      "name": "shaft_body",
+      "sketch": {
+        "plane": "XZ",
+        "geometry": [
+          {"type": "polyline", "points": [
+            [0, 0], [10, 0], [10, 20], [7.5, 20],
+            [7.5, 60], [10, 60], [10, 80], [0, 80], [0, 0]
+          ]}
+        ]
+      },
+      "axis": "Z",
+      "angle": 360
+    },
+    "features": [
+      {
+        "type": "Chamfer",
+        "name": "end_chamfer",
+        "edges": ["top_outer", "bottom_outer"],
+        "size": 0.5,
+        "angle": 45
+      }
+    ]
+  }
+}

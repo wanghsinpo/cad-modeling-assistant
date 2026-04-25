@@ -1,0 +1,57 @@
+{
+  "part_name": "simple_flange",
+  "description": "範例：穿孔法蘭 — 外徑 80, 內孔 30, 厚 10, 4 x M6 盲孔",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "base_disk",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [
+          {"type": "circle", "center": [0, 0], "radius": 40}
+        ]
+      },
+      "length": 10
+    },
+    "features": [
+      {
+        "type": "Pocket",
+        "name": "center_bore",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [
+            {"type": "circle", "center": [0, 0], "radius": 15}
+          ]
+        },
+        "through_all": true
+      },
+      {
+        "type": "Hole",
+        "name": "bolt_hole",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [
+            {"type": "point", "xy": [28, 0]}
+          ]
+        },
+        "thread": {"size": "M6", "class": "6H"},
+        "depth": 8
+      },
+      {
+        "type": "PolarPattern",
+        "name": "bolt_pattern",
+        "source_features": ["bolt_hole"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 4
+      },
+      {
+        "type": "Fillet",
+        "name": "edge_fillet",
+        "edges": ["top_outer", "bottom_outer"],
+        "radius": 1
+      }
+    ]
+  }
+}

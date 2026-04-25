@@ -1,0 +1,102 @@
+{
+  "part_name": "KE_BH_072_v2",
+  "description": "KE-BH-072 with corrected radial notches (center → origin, symmetric about radial axis)",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "ring_body",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [
+          {"type": "circle", "center": [0, 0], "radius": 45},
+          {"type": "circle", "center": [0, 0], "radius": 31}
+        ]
+      },
+      "length": 28.3
+    },
+    "features": [
+      {
+        "type": "radial_notch",
+        "name": "notch_8x_1",
+        "angle": 90,
+        "width": 10,
+        "inner_r": 15,
+        "outer_r": 52,
+        "depth": 3,
+        "plane": "face:top"
+      },
+      {
+        "type": "PolarPattern",
+        "name": "notch_8x_array",
+        "source_features": ["notch_8x_1"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 8
+      },
+      {
+        "type": "radial_notch",
+        "name": "notch_4x_1",
+        "angle": 90,
+        "width": 10,
+        "inner_r": 15,
+        "outer_r": 55,
+        "depth": 3,
+        "plane": "face:top"
+      },
+      {
+        "type": "PolarPattern",
+        "name": "notch_4x_array",
+        "source_features": ["notch_4x_1"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 4
+      },
+      {
+        "type": "radial_notch",
+        "name": "wide_notch_south",
+        "angle": 270,
+        "width": 25,
+        "inner_r": 15,
+        "outer_r": 52,
+        "depth": 3.7,
+        "plane": "face:top"
+      },
+      {
+        "type": "Hole",
+        "name": "thread_M5_1",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [{"type": "point", "xy": [0, 38]}]
+        },
+        "thread": {"size": "M5"},
+        "depth": 24
+      },
+      {
+        "type": "PolarPattern",
+        "name": "thread_4x_array",
+        "source_features": ["thread_M5_1"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 4
+      },
+      {
+        "type": "Chamfer",
+        "name": "top_chamfer",
+        "edges": ["top_outer"],
+        "size": 1.0,
+        "angle": 45
+      },
+      {
+        "type": "Chamfer",
+        "name": "bottom_chamfer",
+        "edges": ["bottom_outer"],
+        "size": 1.0,
+        "angle": 45
+      }
+    ]
+  },
+  "drawing": {
+    "views": ["front", "top", "iso"]
+  }
+}

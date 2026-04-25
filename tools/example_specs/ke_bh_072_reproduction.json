@@ -1,0 +1,77 @@
+{
+  "part_name": "KE_BH_072_reproduction",
+  "description": "嘗試重現 KE-BH-072-EV-X-BP：外徑 90, 內孔 62, 高度 28.3, 多組環狀槽 + 螺紋孔",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "ring_body",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [
+          {"type": "circle", "center": [0, 0], "radius": 45},
+          {"type": "circle", "center": [0, 0], "radius": 31}
+        ]
+      },
+      "length": 28.3
+    },
+    "features": [
+      {
+        "type": "Pocket",
+        "name": "top_notch_1",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [
+            {"type": "rectangle", "center": [38, 0], "width": 8, "height": 12}
+          ]
+        },
+        "depth": 5
+      },
+      {
+        "type": "PolarPattern",
+        "name": "top_notches",
+        "source_features": ["top_notch_1"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 8
+      },
+      {
+        "type": "Hole",
+        "name": "top_thread_1",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [
+            {"type": "point", "xy": [0, 38]}
+          ]
+        },
+        "thread": {"size": "M5"},
+        "depth": 24
+      },
+      {
+        "type": "PolarPattern",
+        "name": "top_threads",
+        "source_features": ["top_thread_1"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 4
+      },
+      {
+        "type": "Chamfer",
+        "name": "outer_top_chamfer",
+        "edges": ["top_outer"],
+        "size": 1.0,
+        "angle": 45
+      },
+      {
+        "type": "Chamfer",
+        "name": "outer_bottom_chamfer",
+        "edges": ["bottom_outer"],
+        "size": 1.0,
+        "angle": 45
+      }
+    ]
+  },
+  "drawing": {
+    "views": ["front", "top", "iso"]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "part_name": "shaft_with_real_keyway",
+  "description": "進階：階梯軸 + 鍵槽（用 DatumPlane 攻在側面）+ 端面螺紋",
+  "units": "mm",
+  "body": {
+    "datum_planes": [
+      {"name": "keyway_plane", "ref": "XZ", "offset_y": 6, "rot_z": 0}
+    ],
+    "base": {
+      "type": "Revolution",
+      "name": "shaft_body",
+      "sketch": {
+        "plane": "XZ",
+        "geometry": [
+          {"type": "polyline", "points": [
+            [0, 0], [8, 0], [8, 15], [12, 15],
+            [12, 55], [8, 55], [8, 70], [0, 70], [0, 0]
+          ]}
+        ]
+      },
+      "axis": "Z",
+      "angle": 360
+    },
+    "features": [
+      {
+        "type": "Pocket",
+        "name": "keyway",
+        "sketch": {
+          "plane": "datum:keyway_plane",
+          "geometry": [
+            {"type": "rectangle", "center": [0, 35], "width": 5, "height": 20}
+          ]
+        },
+        "depth": 3
+      },
+      {
+        "type": "Hole",
+        "name": "end_thread",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [{"type": "point", "xy": [0, 0]}]
+        },
+        "thread": {"size": "M5"},
+        "depth": 12
+      },
+      {
+        "type": "Chamfer",
+        "name": "top_chamfer",
+        "edges": ["top_outer"],
+        "size": 0.5,
+        "angle": 45
+      }
+    ]
+  }
+}
