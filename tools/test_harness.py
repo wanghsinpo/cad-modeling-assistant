@@ -51,6 +51,13 @@ EXPECTATIONS = {
                      "PartDesign::Chamfer"],
         "has_techdraw": True,
     },
+    "shaft_with_oring_groove": {
+        "features": ["PartDesign::Pad", "PartDesign::Groove", "PartDesign::Chamfer"],
+    },
+    "bracket_primitives": {
+        "features": ["PartDesign::AdditiveBox", "PartDesign::AdditiveCylinder",
+                     "PartDesign::SubtractiveCylinder"],
+    },
 }
 
 

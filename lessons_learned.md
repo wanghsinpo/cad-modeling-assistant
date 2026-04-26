@@ -127,3 +127,23 @@
 **原因**：...
 **何時套用**：...
 -->
+
+### 2026-04-26 新增 3 大類特徵支援
+
+**Q22 ✅ Groove (revolutionary subtractive)**：
+- 用途：環狀內凹槽 (O-ring 槽、卡簧槽、退刀槽)、車刀加工的旋轉減材
+- spec：`{"type": "Groove", "sketch": {...}, "axis": "Z", "angle": 360}`
+- 草圖畫**槽的橫截面**（封閉輪廓），系統繞 axis 旋轉減材
+- vs Pocket+PolarPattern：Groove 是真正連續的環，PolarPattern 是離散陣列。**KE-BH-072 內溝其實該用 Groove**
+
+**新增 PartDesign 原語 (primitive features)**：
+- `AdditiveBox` (Length, Width, Height)
+- `AdditiveCylinder` (Radius, Height, Angle)
+- `AdditiveSphere` / `AdditiveCone` / `AdditiveTorus` / `AdditivePrism` / `AdditiveWedge`
+- 對應的 `Subtractive*` 系列
+- 用 `position: {"xyz": [x,y,z], "ypr": [yaw,pitch,roll]}` 定位
+- 適合**不需要 sketch 的簡單形狀**（如螺栓孔、凸柱），比 Pad+sketch 簡潔
+
+**新增規則**：
+- 如果一個特徵可以用 sketch+Pad 也可以用 AdditiveCylinder，**優先用 primitive**（簡單、少一層 sketch 容易出錯）
+- 環狀凹槽 (連續) → Groove；陣列槽 (離散) → Pocket+PolarPattern

@@ -1,0 +1,39 @@
+{
+  "part_name": "shaft_with_oring_groove",
+  "description": "外圍 O-ring 溝示範：圓柱軸 + Groove (revolutionary subtractive)",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "shaft_body",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [{"type": "circle", "center": [0, 0], "radius": 15}]
+      },
+      "length": 50
+    },
+    "features": [
+      {
+        "type": "Groove",
+        "name": "oring_groove",
+        "sketch": {
+          "plane": "XZ",
+          "geometry": [
+            {"type": "polyline", "points": [
+              [13, 20], [15, 20], [15, 23], [13, 23], [13, 20]
+            ]}
+          ]
+        },
+        "axis": "Z",
+        "angle": 360
+      },
+      {
+        "type": "Chamfer",
+        "name": "ends",
+        "edges": ["top_outer", "bottom_outer"],
+        "size": 0.5,
+        "angle": 45
+      }
+    ]
+  }
+}

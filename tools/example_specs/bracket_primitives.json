@@ -1,0 +1,30 @@
+{
+  "part_name": "bracket_primitives",
+  "description": "範例：用 PartDesign 原語直接建模 — Box 基座 + Cylinder 凸柱 + Subtractive 圓孔",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "AdditiveBox",
+      "name": "base_block",
+      "Length": 50,
+      "Width": 30,
+      "Height": 10
+    },
+    "features": [
+      {
+        "type": "AdditiveCylinder",
+        "name": "boss",
+        "Radius": 8,
+        "Height": 15,
+        "position": {"xyz": [25, 15, 10]}
+      },
+      {
+        "type": "SubtractiveCylinder",
+        "name": "thru_hole",
+        "Radius": 4,
+        "Height": 30,
+        "position": {"xyz": [25, 15, 0]}
+      }
+    ]
+  }
+}

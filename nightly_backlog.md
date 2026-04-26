@@ -41,7 +41,7 @@
 ### （自動新增區）
 
 - [ ] Q21. **🔴 高優**：parse + 學習 `external_corpus/Examples/100CadExercises/` 的 136 個 CAD 教科書範例。已知含 6 個 generator 沒支援的新特徵：AdditiveLoft, AdditivePipe, AdditiveBox, AdditiveCylinder, SubtractiveCylinder, Groove, MultiTransform。先挑 Groove（旋轉減材，環狀槽常用）實作。
-- [ ] Q22. **🔴 高優**：實作 `Groove` feature（旋轉減材），spec syntax `{"type": "Groove", "sketch": ..., "axis": "Z", "angle": 360}`。Andy 的 KE-BH-072 內溝有可能本來就該用 Groove 而非 Pocket+PolarPattern。
+- [x] Q22 ✅2026-04-26: 實作 `Groove` feature（旋轉減材），spec syntax `{"type": "Groove", "sketch": ..., "axis": "Z", "angle": 360}`。Andy 的 KE-BH-072 內溝有可能本來就該用 Groove 而非 Pocket+PolarPattern。
 - [ ] Q23. 🟡：實作 AdditiveLoft（兩個 sketch 之間放樣）—— 馬達轉子、葉片常用。
 - [ ] Q24. 🟡：實作 AdditivePipe（路徑掃掠）—— 管路、油道用。
 - [ ] Q25. 🟡：把 100CadExercises 中 starter=Revolution 的 18 個檔案逐一 parse，建立旋轉體的標準模板庫。

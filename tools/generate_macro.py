@@ -315,6 +315,50 @@ def _make_revolution(sketch, axis_name, angle=360, name="Revolution"):
     return rev
 
 
+def _make_groove(sketch, axis_name, angle=360, reversed=False, midplane=False, name="Groove"):
+    """Revolutionary subtractive feature — sketches profile of the groove (cross-section),
+    revolved around axis to remove material. Common for ring grooves, retaining ring slots,
+    O-ring grooves, internal/external relief cuts."""
+    gv = doc.addObject("PartDesign::Groove", name)
+    body.addObject(gv)
+    gv.Profile = sketch
+    ax = _axis(axis_name)
+    if ax:
+        gv.ReferenceAxis = (ax, [""])
+    gv.Angle = angle
+    gv.Reversed = reversed
+    gv.Midplane = midplane
+    sketch.Visibility = False
+    doc.recompute()
+    return gv
+
+
+def _make_primitive(kind, params, name=None):
+    """Create a PartDesign primitive solid (Box, Cylinder, Sphere, Cone, Torus, Prism, Wedge).
+    kind: 'AdditiveBox' | 'AdditiveCylinder' | 'AdditiveSphere' | 'AdditiveCone' | 'AdditiveTorus'
+          | 'SubtractiveBox' | 'SubtractiveCylinder' | 'SubtractiveSphere' ...
+    params: dict of named dims (Length, Width, Height, Radius, Radius1, Radius2, Angle).
+    """
+    type_id = "PartDesign::" + kind
+    feat = doc.addObject(type_id, name or kind)
+    body.addObject(feat)
+    # Set whatever attributes exist
+    for k, v in (params or {{}}).items():
+        if hasattr(feat, k):
+            try:
+                setattr(feat, k, v)
+            except Exception as e:
+                App.Console.PrintMessage("primitive set %s skipped: %s\\n" % (k, e))
+    # Position via Placement if provided
+    pos = params.get("position") if params else None
+    if pos:
+        from FreeCAD import Vector, Rotation, Placement
+        feat.Placement = Placement(Vector(*pos.get("xyz", [0,0,0])),
+                                    Rotation(*pos.get("ypr", [0,0,0])))
+    doc.recompute()
+    return feat
+
+
 def _make_polar_pattern(source_features, axis_name, angle, occurrences, name="PolarPattern"):
     pp = doc.addObject("PartDesign::PolarPattern", name)
     body.addObject(pp)
@@ -616,7 +660,7 @@ def _emit_feature(f, name):
     sketch_var = f"sk_{_py_safe(name)}"
     feat_var = f"feat_{_py_safe(name)}"
 
-    if t in ("Pad", "Pocket", "Revolution", "Hole"):
+    if t in ("Pad", "Pocket", "Revolution", "Groove", "Hole"):
         sk = f["sketch"]
         geo = json.dumps(sk["geometry"])
         cons = json.dumps(sk.get("constraints", []))
@@ -633,6 +677,11 @@ def _emit_feature(f, name):
         elif t == "Revolution":
             lines.append(f'{feat_var} = _make_revolution({sketch_var}, "{f.get("axis","Z")}", '
                          f'angle={f.get("angle", 360)}, name="{name}")')
+        elif t == "Groove":
+            lines.append(f'{feat_var} = _make_groove({sketch_var}, "{f.get("axis","Z")}", '
+                         f'angle={f.get("angle", 360)}, '
+                         f'reversed={f.get("reversed", False)}, '
+                         f'midplane={f.get("midplane", False)}, name="{name}")')
         elif t == "Hole":
             thread = f.get("thread", {})
             size = thread.get("size", "M4")
@@ -642,6 +691,14 @@ def _emit_feature(f, name):
             lines.append(f'{feat_var} = _make_hole({sketch_var}, "{size}", {f.get("depth", 10)}, '
                          f'threaded={threaded}, counter_bore={repr(cb)}, '
                          f'counter_sink={repr(cs)}, name="{name}")')
+
+    elif t in ("AdditiveBox", "AdditiveCylinder", "AdditiveSphere", "AdditiveCone",
+               "AdditiveTorus", "AdditivePrism", "AdditiveWedge",
+               "SubtractiveBox", "SubtractiveCylinder", "SubtractiveSphere", "SubtractiveCone",
+               "SubtractiveTorus", "SubtractivePrism", "SubtractiveWedge"):
+        params = {k: v for k, v in f.items()
+                  if k not in ("type", "name")}
+        lines.append(f'feat_{_py_safe(name)} = _make_primitive("{t}", {repr(params)}, name="{name}")')
 
     elif t == "PolarPattern":
         srcs = ", ".join(f"feat_{_py_safe(s)}" for s in f["source_features"])
