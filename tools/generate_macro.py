@@ -185,8 +185,16 @@ def _make_sketch(name, plane_spec, geometry, constraints=None, face_tag=None):
             i = sk.addGeometry(line, False)
             gidx.append(("line", i))
         elif t == "polyline":
-            pts = g["points"]
-            first_idx = None
+            pts = list(g["points"])
+            # Auto-close: if user supplied auto_close=True or the polyline visually
+            # forms a near-closed shape (gap < 1e-6), repeat first point at end so the
+            # final segment closes the loop. Default ON for clarity.
+            auto_close = g.get("auto_close", True)
+            if auto_close and len(pts) > 2 and pts[0] != pts[-1]:
+                # Check if gap is small or just append regardless
+                gap = ((pts[0][0] - pts[-1][0])**2 + (pts[0][1] - pts[-1][1])**2) ** 0.5
+                if gap < 1e-6 or g.get("auto_close") is True:
+                    pts.append(pts[0])
             line_indices = []
             for k in range(len(pts) - 1):
                 line = Part.LineSegment(App.Vector(pts[k][0], pts[k][1], 0),
@@ -197,7 +205,7 @@ def _make_sketch(name, plane_spec, geometry, constraints=None, face_tag=None):
             for k in range(len(line_indices) - 1):
                 sk.addConstraint(Sketcher.Constraint("Coincident",
                     line_indices[k], 2, line_indices[k+1], 1))
-            # Close if first==last
+            # Close ring if first==last (or we appended)
             if len(pts) > 2 and pts[0] == pts[-1]:
                 sk.addConstraint(Sketcher.Constraint("Coincident",
                     line_indices[-1], 2, line_indices[0], 1))

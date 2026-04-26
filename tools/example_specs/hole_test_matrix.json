@@ -1,0 +1,60 @@
+{
+  "part_name": "hole_test_matrix",
+  "description": "驗證 Hole feature 全系列：M3-M10 + 通孔/盲孔/沉頭/沉座 — 一個 100x80 板上排 8 個孔",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "base_plate",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [{"type": "rectangle", "center": [0, 0], "width": 100, "height": 80}]
+      },
+      "length": 12
+    },
+    "features": [
+      {
+        "type": "Hole", "name": "h_M3_blind",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [-40, -30]}]},
+        "thread": {"size": "M3"}, "depth": 6
+      },
+      {
+        "type": "Hole", "name": "h_M4_blind",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [-20, -30]}]},
+        "thread": {"size": "M4"}, "depth": 8
+      },
+      {
+        "type": "Hole", "name": "h_M5_blind",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [0, -30]}]},
+        "thread": {"size": "M5"}, "depth": 10
+      },
+      {
+        "type": "Hole", "name": "h_M6_blind",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [20, -30]}]},
+        "thread": {"size": "M6"}, "depth": 10
+      },
+      {
+        "type": "Hole", "name": "h_M8_blind",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [40, -30]}]},
+        "thread": {"size": "M8"}, "depth": 10
+      },
+      {
+        "type": "Hole", "name": "h_M5_csk",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [-30, 20]}]},
+        "thread": {"size": "M5"}, "depth": 10,
+        "counter_sink": {"diameter": 10, "angle": 90}
+      },
+      {
+        "type": "Hole", "name": "h_M6_cb",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [0, 20]}]},
+        "thread": {"size": "M6"}, "depth": 10,
+        "counter_bore": {"diameter": 11, "depth": 6}
+      },
+      {
+        "type": "Hole", "name": "h_M10_blind",
+        "sketch": {"plane": "face:top", "geometry": [{"type": "point", "xy": [30, 20]}]},
+        "thread": {"size": "M10"}, "depth": 10
+      }
+    ]
+  }
+}

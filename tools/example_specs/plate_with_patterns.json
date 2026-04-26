@@ -1,0 +1,50 @@
+{
+  "part_name": "plate_with_patterns",
+  "description": "驗證 LinearPattern + Mirrored — 板件，4 個孔（LinearPattern 沿 X 軸 4 個 + Mirrored 沿 XZ）",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "base_plate",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [
+          {"type": "rectangle", "center": [0, 0], "width": 100, "height": 60}
+        ]
+      },
+      "length": 8
+    },
+    "features": [
+      {
+        "type": "Hole",
+        "name": "hole_seed",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [{"type": "point", "xy": [-35, -20]}]
+        },
+        "thread": {"size": "M5"},
+        "depth": 8
+      },
+      {
+        "type": "LinearPattern",
+        "name": "row_x",
+        "source_features": ["hole_seed"],
+        "direction": "X",
+        "length": 70,
+        "occurrences": 4
+      },
+      {
+        "type": "Mirrored",
+        "name": "mirror_y",
+        "source_features": ["hole_seed", "row_x"],
+        "plane": "XZ"
+      },
+      {
+        "type": "Fillet",
+        "name": "edge_round",
+        "edges": ["all_circles"],
+        "radius": 1
+      }
+    ]
+  }
+}

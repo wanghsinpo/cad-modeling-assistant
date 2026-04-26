@@ -58,6 +58,13 @@ EXPECTATIONS = {
         "features": ["PartDesign::AdditiveBox", "PartDesign::AdditiveCylinder",
                      "PartDesign::SubtractiveCylinder"],
     },
+    "plate_with_patterns": {
+        "features": ["PartDesign::Pad", "PartDesign::Hole",
+                     "PartDesign::LinearPattern", "PartDesign::Mirrored"],
+    },
+    "hole_test_matrix": {
+        "features": ["PartDesign::Pad", "PartDesign::Hole"],
+    },
 }
 
 
