@@ -9,7 +9,7 @@
 - [ ] Q1. 徑向槽 (radial notch) 正確畫法：如何用 Symmetric 約束 + DistanceX 實作「中心指向圓心、左右對稱」？產出一個工作的 sketch geometry emitter，並在 ke_bh_072_reproduction_v2.json 裡使用。
 - [ ] Q2. KE-BH-072 原件的 Sketch003/004/005 到底怎麼構成？逐一解碼 GeomPoint 座標、Symmetric 對象、PointOnObject 參考，寫成精確重建。
 - [ ] Q3. 如何自動加 TechDraw Dimension？至少支援：外徑、總高、孔位 PCD。寫一個 `_auto_dimension()` helper 讓 spec 可以宣告哪些尺寸要標。
-- [ ] Q4. 我的 simple_flange bbox 變 86.6 而非 80 為什麼？PolarPattern 後面的 bbox 為何超過原外圓？查 FreeCAD 1.0.2 API。
+- [x] Q4. ✅ 2026-04-26：解開了 — Hole 的 cosmetic thread geometry 影響 PolarPattern bbox 計算。實體仍正確。記在 lessons_learned。
 - [ ] Q5. Sketch on 圓柱面：除了 datum plane 還有哪些方法？PartDesign 有沒有直接 map to cylindrical face 的 MapMode？
 
 ## 🟡 Medium — 補齊能力

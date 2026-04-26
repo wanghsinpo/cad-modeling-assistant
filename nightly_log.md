@@ -31,4 +31,41 @@
 
 ---
 
-（等待下一次自動執行：2026-04-26 02:17 Taipei）
+## 2026-04-26 (手動 + v2 routine 沒做事的補救)
+
+### v2 routine 狀況
+- ✅ 02:30 Taipei 確實有 fire (lastRunAt 2026-04-25T18:30:16Z)
+- ❌ 但**沒寫 nightly_log、沒 backlog 打勾、沒 git push**
+- ✅ 沒搞壞測試 (7/7 持續)
+- 推測：routine 環境 token 早於預期就耗盡，或某種 silent return
+
+### Andy 起床後手動跑這輪做了什麼
+
+**Q4 ✅ 解決**：simple_flange bbox 86.6 vs spec 80 之謎
+- Pad/Pocket/Hole 單個都正確（80mm）
+- PolarPattern(Hole) 後變 86.591 — 是 FreeCAD Hole 的 cosmetic thread geometry 影響 BoundBox
+- 實際零件幾何**仍正確**，是 bbox 計算的「特性」，不是 bug
+- 已記入 `lessons_learned.md`
+
+**Q6 ✅ 部分達成**：external corpus 下載
+- 新增 `/Users/linda/Downloads/cad/learn/external_corpus/`
+- `yann_parts/` 107 個 FCStd（Pad/Pocket 板件、機箱、支架、樂器零件）
+- `fasteners_wb/` FreeCAD Fasteners workbench 原始碼
+- `freecad-parts/` (kilork) DIY CNC/3D printer 零件
+- 100% Pad 起始，平均 4–8 features，跟 Andy 風格相容
+
+### 規則更新
+- Fillet 可穿插在 Pocket 之間（不只是最後階段）
+- 板件類零件 spec 通常需要 ≥ 5 個 Pocket 才完整
+
+### 測試
+- 7/7 pass 維持（baseline 沒退）
+
+### 下次（4/27 v2 routine 應該）
+- 強化 prompt：要求**每挑一題都要先 echo 「我在做 Qx」**到 stderr，方便 debug
+- 加 `set -x` 風格的監測點
+- 也許需要 fallback：如果 token < 50k 還沒做事，至少 git commit 一個「我今晚什麼都沒做」的 placeholder
+
+---
+
+（下次自動執行：2026-04-27 02:30 Taipei via cad-skill-improver-v2）

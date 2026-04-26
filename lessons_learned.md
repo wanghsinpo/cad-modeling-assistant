@@ -81,6 +81,43 @@
 
 → 所以原件的槽是**沿徑向對稱於 X 軸**，左右各半寬。我之前放 `rectangle center=(35,0)` 雖然位置對但幾何意義錯了——應該要用**向 X 軸對稱**的約束系統。
 
+### 2026-04-26 Q4: PolarPattern 後 BoundBox 異常變大
+
+**現象**：simple_flange spec 設外徑 80mm，但 PolarPattern(Hole) 後 bbox 變 86.591mm。
+
+**逐步追蹤**：
+- Pad (base_disk):  bbox 80.0 ✅
+- Pocket (center_bore): bbox 80.0 ✅
+- Hole (bolt_hole, 單個): bbox 80.0 ✅
+- **PolarPattern (4 holes): bbox 86.591** ⚠️
+- Fillet: bbox 86.591（繼承）
+
+**結論**：FreeCAD 1.0.x PartDesign Hole + PolarPattern 在計算 BoundBox 時包含了**螺紋的 cosmetic geometry**（threads helix 的外接幾何），不是實際零件外形。零件的 actual solid 仍是 ⌀80。
+
+**何時要注意**：
+- 用 bbox 估體積時要扣這個誤差（約 +8% on diameter for M4-M6）
+- 跟客戶溝通要用「設計尺寸 OD 80」不是 bbox 數字
+- TechDraw 出圖時的尺寸是從 sketch 讀取，不受影響
+
+**工程師備註**：把這當 FreeCAD 的「特性」接受。如果未來要報告精確 bbox，先 suppress Hole 的螺紋 (Threaded=False) 量完再恢復。
+
+### 2026-04-26 Q6: External corpus 下載
+
+成功下載到 `/Users/linda/Downloads/cad/learn/external_corpus/`：
+- `yann_parts/` — 107 個 FCStd（含吉他零件、機箱、支架、鍵盤支架）
+- `fasteners_wb/`（FreeCAD Fasteners workbench source code，無 FCStd 但有螺絲生成邏輯參考）
+- `freecad-parts/`（kilork — 含 CNC/3D printer 零件）
+
+**這 20 個 sample 觀察**：
+- 100% 用 Pad 起始（無 Revolution，因為這 corpus 主要是板件/盒體，非旋轉體）
+- 主流 pattern: `Pad → Pocket (×N) → Pad → Fillet/Chamfer`
+- 平均每件 4–8 個 feature
+- 跟 Andy 風格相似度高（也用 PartDesign Body）
+
+**可學習的新點**：
+- `db-37-receiver` 連續 5 個 Pocket → 證實複雜零件確實要寫多個 Pocket spec
+- `eletronic-box-bottom-cover` 用了 `Pad→Pad→Fillet→Pocket→Chamfer→Fillet→Pocket` — Fillet 可以**穿插在 Pocket 之間**（不是只在最後）
+
 <!-- 格式範例
 ### YYYY-MM-DD 零件名稱
 

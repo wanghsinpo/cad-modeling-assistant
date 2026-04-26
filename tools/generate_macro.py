@@ -470,21 +470,23 @@ def _make_techdraw(views=None):
 
 
 def _auto_dimension(page, dims):
-    """Add TechDraw dimensions for declared dim types.
+    """Add TechDraw dimension annotations for declared dim types.
 
-    dims: list of dicts, each with at least {{"type": "od"|"height"|"pcd"|"id"}}
-    plus optional {{"value": float}} for annotation (no measurement edge needed).
+    dims: list of dicts, each with at least {{"type": "od"|"height"|"pcd"|"id"|"thread"|"depth"|"thickness"}}
+    plus optional {{"value": float, "label": str, "x": float, "y": float}}.
 
-    Strategy: use LengthDimension anchored to bounding-box edges of the front view.
-    Falls back to annotation-only dimension if edge selection fails.
+    Implementation: emit DrawViewAnnotation (text labels) anchored to the front view.
+    True parametric DrawViewDimension requires valid Edge/Vertex references on the
+    projected geometry which are not deterministic across FreeCAD recomputes — annotations
+    are safer and still let Andy edit numeric values directly in the drawing.
     """
     try:
         import TechDraw
     except Exception:
-        return
+        return []
     if not page:
-        return
-    # Find the ProjGroup's Front view
+        return []
+    # Find the ProjGroup's Front view (or any drawable view)
     front = None
     for obj in doc.Objects:
         if obj.TypeId == "TechDraw::DrawProjGroupItem":
@@ -495,52 +497,52 @@ def _auto_dimension(page, dims):
             except Exception:
                 pass
     if front is None:
-        # Try any view
         for obj in doc.Objects:
-            if "DrawView" in obj.TypeId or "DrawProjGroup" in obj.TypeId:
+            if obj.TypeId in ("TechDraw::DrawProjGroupItem", "TechDraw::DrawViewPart"):
                 front = obj
                 break
-    if front is None:
-        return
 
-    for dim_spec in (dims or []):
+    # Stack vertical positions so labels don't overlap (mm offset from view origin)
+    LABELS = {{
+        "od": "OD", "id": "ID", "height": "H", "pcd": "PCD",
+        "thread": "THD", "depth": "DEPTH", "thickness": "T",
+    }}
+    created = []
+    base_y = -40.0
+    dy = -7.0
+    for idx, dim_spec in enumerate(dims or []):
         dtype = dim_spec.get("type", "")
         value = dim_spec.get("value")
+        custom_label = dim_spec.get("label")
+        prefix = LABELS.get(dtype, dtype.upper() or "DIM")
+        if value is None and custom_label is None:
+            continue
         try:
-            if dtype == "od":
-                # Outer diameter → horizontal dimension spanning front view bbox
-                dim = doc.addObject("TechDraw::DrawViewDimension", "Dim_OD")
-                dim.Type = "DistanceX"
-                dim.MeasureType = "True"
-                if value:
-                    dim.FormatSpec = "OD %(value).2f" % {{"value": value}}
-            elif dtype == "id":
-                dim = doc.addObject("TechDraw::DrawViewDimension", "Dim_ID")
-                dim.Type = "DistanceX"
-                if value:
-                    dim.FormatSpec = "ID %(value).2f" % {{"value": value}}
-            elif dtype == "height":
-                dim = doc.addObject("TechDraw::DrawViewDimension", "Dim_H")
-                dim.Type = "DistanceY"
-                if value:
-                    dim.FormatSpec = "H %(value).2f" % {{"value": value}}
-            elif dtype == "pcd":
-                # Pitch-circle diameter → radius dimension
-                dim = doc.addObject("TechDraw::DrawViewDimension", "Dim_PCD")
-                dim.Type = "Radius"
-                if value:
-                    dim.FormatSpec = "PCD %(value).2f" % {{"value": value}}
+            if value is not None:
+                if isinstance(value, float) and abs(value - int(value)) < 1e-6:
+                    val_str = "%d" % int(value)
+                else:
+                    val_str = "%.2f" % float(value) if isinstance(value, (int, float)) else str(value)
             else:
-                continue
-            # Attach to front view (edge selection is best-effort)
-            try:
-                dim.References2D = [(front, "Edge1")]
-            except Exception:
-                pass
-            page.addView(dim)
+                val_str = ""
+            text = custom_label if custom_label else (
+                ("%s %s" % (prefix, val_str)).strip()
+            )
+            ann_name = "Dim_%s_%d" % (dtype.upper() or "ANN", idx + 1)
+            ann = doc.addObject("TechDraw::DrawViewAnnotation", ann_name)
+            ann.Text = [text]
+            ann.TextStyle = "Normal"
+            ann.TextSize = 5
+            x = dim_spec.get("x", 0.0)
+            y = dim_spec.get("y", base_y + idx * dy)
+            ann.X = float(x)
+            ann.Y = float(y)
+            page.addView(ann)
+            created.append(ann)
             doc.recompute()
         except Exception as e:
             App.Console.PrintMessage("auto_dim skipped (%s): %s\\n" % (dtype, e))
+    return created
 
 
 # ------- BUILD FEATURES -------
@@ -595,9 +597,14 @@ def emit(spec):
         out += _emit_feature(f, fname)
 
     # Drawing
-    if spec.get("drawing"):
+    drawing = spec.get("drawing")
+    if drawing:
         out += "\n# ---- TechDraw page ----\n"
-        out += "_make_techdraw()\n"
+        out += "_page = _make_techdraw()\n"
+        # dims may be supplied as "dims" (preferred) or legacy "dimensions"
+        dims = drawing.get("dims") or drawing.get("dimensions")
+        if dims:
+            out += f"_auto_dimension(_page, {json.dumps(dims)})\n"
 
     out += MACRO_EPILOGUE
     return out
