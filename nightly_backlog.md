@@ -39,3 +39,18 @@
 每次 nightly run 結束時，若想到新問題就加到下面：
 
 ### （自動新增區）
+
+- [ ] Q21. **🔴 高優**：parse + 學習 `external_corpus/Examples/100CadExercises/` 的 136 個 CAD 教科書範例。已知含 6 個 generator 沒支援的新特徵：AdditiveLoft, AdditivePipe, AdditiveBox, AdditiveCylinder, SubtractiveCylinder, Groove, MultiTransform。先挑 Groove（旋轉減材，環狀槽常用）實作。
+- [ ] Q22. **🔴 高優**：實作 `Groove` feature（旋轉減材），spec syntax `{"type": "Groove", "sketch": ..., "axis": "Z", "angle": 360}`。Andy 的 KE-BH-072 內溝有可能本來就該用 Groove 而非 Pocket+PolarPattern。
+- [ ] Q23. 🟡：實作 AdditiveLoft（兩個 sketch 之間放樣）—— 馬達轉子、葉片常用。
+- [ ] Q24. 🟡：實作 AdditivePipe（路徑掃掠）—— 管路、油道用。
+- [ ] Q25. 🟡：把 100CadExercises 中 starter=Revolution 的 18 個檔案逐一 parse，建立旋轉體的標準模板庫。
+- [ ] Q26. 🟢：再 clone 這些有 FCStd 的 repo: `kicadStepUpMod` (17), `freecad.gears` (10), `freecad.trails` (7) 並 parse。
+- [ ] Q27. 🟢：搜尋 GitHub topic `freecad-parametric` 找更多範例 repo。
+
+### 2026-04-26 Andy 提醒
+> 「你為什麼不去網路上找別人畫的 FCStd 就好了」
+
+→ 對。已經 clone 10 個 repo、總共 **300 個 FCStd**（從原本的 27 + 107 增加到 300）。
+→ 重點 corpus：`Examples/100CadExercises` 是 CAD 教科書練習，最有學習價值。
+→ 從現在起 routine 應該**優先**從 external_corpus 學新 pattern，而不是繼續糾結 user_corpus 的奎邦風格。
