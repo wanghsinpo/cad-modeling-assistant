@@ -1,0 +1,27 @@
+{
+  "part_name": "funnel_loft",
+  "description": "範例：放樣（Loft）— 兩個圓（不同高度）之間放樣形成漏斗",
+  "units": "mm",
+  "body": {
+    "datum_planes": [
+      {"name": "top_plane", "ref": "XY", "offset_z": 40}
+    ],
+    "base": {
+      "type": "AdditiveLoft",
+      "name": "funnel",
+      "profile": {
+        "plane": "XY",
+        "geometry": [{"type": "circle", "center": [0, 0], "radius": 30}]
+      },
+      "sections": [
+        {
+          "plane": "datum:top_plane",
+          "geometry": [{"type": "circle", "center": [0, 0], "radius": 10}]
+        }
+      ],
+      "ruled": false,
+      "closed": false
+    },
+    "features": []
+  }
+}

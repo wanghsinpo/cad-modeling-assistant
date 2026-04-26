@@ -65,6 +65,9 @@ EXPECTATIONS = {
     "hole_test_matrix": {
         "features": ["PartDesign::Pad", "PartDesign::Hole"],
     },
+    "funnel_loft": {
+        "features": ["PartDesign::AdditiveLoft"],
+    },
 }
 
 

@@ -97,6 +97,12 @@
     ]
   },
   "drawing": {
-    "views": ["front", "top", "iso"]
+    "views": ["front", "top", "iso"],
+    "dims": [
+      {"type": "od", "value": 90},
+      {"type": "id", "value": 62},
+      {"type": "height", "value": 28.3},
+      {"type": "pcd", "value": 76}
+    ]
   }
 }

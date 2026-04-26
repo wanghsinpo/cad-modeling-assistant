@@ -151,16 +151,56 @@ def _make_sketch(name, plane_spec, geometry, constraints=None, face_tag=None):
             sk.MapMode = "FlatFace"
     elif plane_spec.startswith("face:"):
         tag = plane_spec.split(":", 1)[1]
-        fref = _face_ref(tag)
-        if fref:
-            sk.AttachmentSupport = fref
-            sk.MapMode = "FlatFace"
-        else:
-            # Fallback to XY
-            ref = _plane("XY")
-            if ref:
-                sk.AttachmentSupport = (ref, [""])
+        # Special: face:outer_cyl@<angle_deg> means tangent plane at given angle
+        # around outer cylinder — auto-create a DatumPlane tangent to the cylinder
+        if tag.startswith("outer_cyl@"):
+            try:
+                angle_deg = float(tag.split("@", 1)[1])
+            except Exception:
+                angle_deg = 0.0
+            # Find largest cylinder face → its radius = tangent offset
+            base = body.Tip
+            shape = base.Shape
+            r_max = 0.0
+            for f in shape.Faces:
+                try:
+                    if f.Surface.TypeId == "Part::GeomCylinder":
+                        r_max = max(r_max, f.Surface.Radius)
+                except Exception:
+                    pass
+            if r_max > 0:
+                import math as _m
+                # Tangent plane: parallel to YZ rotated around Z by angle_deg, offset r_max
+                dp = doc.addObject("PartDesign::Plane", "auto_tangent_" + str(int(angle_deg)))
+                body.addObject(dp)
+                ref = _plane("YZ")
+                if ref:
+                    dp.AttachmentSupport = (ref, [""])
+                    dp.MapMode = "FlatFace"
+                ang_rad = _m.radians(angle_deg)
+                dp.AttachmentOffset = App.Placement(
+                    App.Vector(r_max * _m.cos(ang_rad), r_max * _m.sin(ang_rad), 0),
+                    App.Rotation(angle_deg, 0, 0)
+                )
+                doc.recompute()
+                sk.AttachmentSupport = (dp, [""])
                 sk.MapMode = "FlatFace"
+            else:
+                # Fallback
+                ref = _plane("XY")
+                if ref:
+                    sk.AttachmentSupport = (ref, [""])
+                    sk.MapMode = "FlatFace"
+        else:
+            fref = _face_ref(tag)
+            if fref:
+                sk.AttachmentSupport = fref
+                sk.MapMode = "FlatFace"
+            else:
+                ref = _plane("XY")
+                if ref:
+                    sk.AttachmentSupport = (ref, [""])
+                    sk.MapMode = "FlatFace"
     doc.recompute()
 
     # Track geometry index → tag for constraint reference
@@ -281,6 +321,13 @@ def _make_sketch(name, plane_spec, geometry, constraints=None, face_tag=None):
                 App.Console.PrintMessage("constraint skipped: %s\\n" % e)
 
     doc.recompute()
+    # DOF check: warn if sketch under-constrained (best-effort, won't block build)
+    try:
+        if hasattr(sk, "FullyConstrained") and sk.FullyConstrained is False:
+            App.Console.PrintWarning(
+                "[%s] under-constrained sketch (DOF > 0) — geometry may shift on edits\\n" % name)
+    except Exception:
+        pass
     return sk
 
 
@@ -321,6 +368,22 @@ def _make_revolution(sketch, axis_name, angle=360, name="Revolution"):
     sketch.Visibility = False
     doc.recompute()
     return rev
+
+
+def _make_loft(sketches, ruled=False, closed=False, name="AdditiveLoft"):
+    """Loft additive: sweep between 2+ sketches forming smooth or ruled surface.
+    sketches: list of Sketcher objects, first is profile, rest are sections."""
+    loft = doc.addObject("PartDesign::AdditiveLoft", name)
+    body.addObject(loft)
+    loft.Profile = sketches[0]
+    if len(sketches) > 1:
+        loft.Sections = sketches[1:]
+    loft.Ruled = ruled
+    loft.Closed = closed
+    for s in sketches:
+        s.Visibility = False
+    doc.recompute()
+    return loft
 
 
 def _make_groove(sketch, axis_name, angle=360, reversed=False, midplane=False, name="Groove"):
@@ -699,6 +762,21 @@ def _emit_feature(f, name):
             lines.append(f'{feat_var} = _make_hole({sketch_var}, "{size}", {f.get("depth", 10)}, '
                          f'threaded={threaded}, counter_bore={repr(cb)}, '
                          f'counter_sink={repr(cs)}, name="{name}")')
+
+    elif t == "AdditiveLoft":
+        # spec: { type: "AdditiveLoft", name: "...", profile: <sketch_def>, sections: [<sketch_defs>], ruled: false, closed: false }
+        sk_defs = [f["profile"]] + f.get("sections", [])
+        var_names = []
+        for i, sk in enumerate(sk_defs):
+            sv = f"sk_{_py_safe(name)}_{i}"
+            var_names.append(sv)
+            geo = json.dumps(sk["geometry"])
+            cons = json.dumps(sk.get("constraints", []))
+            lines.append(f'{sv} = _make_sketch("{sv}", "{sk["plane"]}", {geo}, {cons})')
+        sk_list = "[" + ", ".join(var_names) + "]"
+        lines.append(f'feat_{_py_safe(name)} = _make_loft({sk_list}, '
+                     f'ruled={f.get("ruled", False)}, closed={f.get("closed", False)}, '
+                     f'name="{name}")')
 
     elif t in ("AdditiveBox", "AdditiveCylinder", "AdditiveSphere", "AdditiveCone",
                "AdditiveTorus", "AdditivePrism", "AdditiveWedge",
