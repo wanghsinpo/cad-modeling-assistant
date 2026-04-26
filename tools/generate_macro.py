@@ -273,6 +273,53 @@ def _make_sketch(name, plane_spec, geometry, constraints=None, face_tag=None):
             # Fix the center (for positioning)
             sk.addConstraint(Sketcher.Constraint("DistanceX", lines[0], 1, -1, 1, c[0] - hx))
             sk.addConstraint(Sketcher.Constraint("DistanceY", lines[0], 1, -1, 1, c[1] - hy))
+        elif t == "slot":
+            # 腰型孔 / stadium: 兩個半圓+兩條切線，center 是中心點，length 是兩半圓圓心距離，
+            # width 是孔寬（= 2*end-radius）
+            c = g["center"]
+            length = g["length"]
+            width = g["width"]
+            angle_deg = g.get("angle", 0)
+            import math as _m
+            ang = _m.radians(angle_deg)
+            ca, sa = _m.cos(ang), _m.sin(ang)
+            half_l = length / 2.0
+            r_end = width / 2.0
+            # 兩半圓中心
+            c1 = (c[0] - half_l*ca, c[1] - half_l*sa)
+            c2 = (c[0] + half_l*ca, c[1] + half_l*sa)
+            # 切線端點 (perpendicular to axis)
+            nx, ny = -sa, ca  # normal direction
+            p_topL    = (c1[0] + r_end*nx, c1[1] + r_end*ny)
+            p_topR    = (c2[0] + r_end*nx, c2[1] + r_end*ny)
+            p_botL    = (c1[0] - r_end*nx, c1[1] - r_end*ny)
+            p_botR    = (c2[0] - r_end*nx, c2[1] - r_end*ny)
+            # Top tangent line
+            ln_top = Part.LineSegment(App.Vector(*p_topL, 0), App.Vector(*p_topR, 0))
+            i_top = sk.addGeometry(ln_top, False); gidx.append(("line", i_top))
+            # Bottom tangent line
+            ln_bot = Part.LineSegment(App.Vector(*p_botL, 0), App.Vector(*p_botR, 0))
+            i_bot = sk.addGeometry(ln_bot, False); gidx.append(("line", i_bot))
+            # Left arc (from p_botL to p_topL going around c1, through far-left)
+            arc_l = Part.ArcOfCircle(
+                Part.Circle(App.Vector(*c1, 0), App.Vector(0,0,1), r_end),
+                _m.atan2(p_botL[1]-c1[1], p_botL[0]-c1[0]),
+                _m.atan2(p_topL[1]-c1[1], p_topL[0]-c1[0]) + 2*_m.pi  # go the long way
+            )
+            try:
+                i_al = sk.addGeometry(arc_l, False); gidx.append(("arc", i_al))
+            except Exception:
+                pass
+            # Right arc
+            arc_r = Part.ArcOfCircle(
+                Part.Circle(App.Vector(*c2, 0), App.Vector(0,0,1), r_end),
+                _m.atan2(p_topR[1]-c2[1], p_topR[0]-c2[0]),
+                _m.atan2(p_botR[1]-c2[1], p_botR[0]-c2[0]) + 2*_m.pi
+            )
+            try:
+                i_ar = sk.addGeometry(arc_r, False); gidx.append(("arc", i_ar))
+            except Exception:
+                pass
         elif t == "point":
             xy = g["xy"]
             pt = Part.Point(App.Vector(xy[0], xy[1], 0))
@@ -673,6 +720,25 @@ if _mp:
     fcstd = os.path.splitext(_mp)[0] + ".FCStd"
     doc.saveAs(fcstd)
     App.Console.PrintMessage("Saved: " + fcstd + "\\n")
+    # Optional auto-export (controlled by spec.export_formats)
+    _exports = locals().get("_export_formats") or []
+    for _fmt in _exports:
+        try:
+            _out = os.path.splitext(_mp)[0] + "." + _fmt.lower()
+            if _fmt.lower() in ("step", "stp"):
+                import Part
+                Part.export([body], _out)
+            elif _fmt.lower() == "iges":
+                import Part
+                Part.export([body], _out)
+            elif _fmt.lower() == "stl":
+                import Mesh
+                Mesh.export([body], _out)
+            elif _fmt.lower() == "brep":
+                body.Shape.exportBrep(_out)
+            App.Console.PrintMessage("Exported: " + _out + "\\n")
+        except Exception as _e:
+            App.Console.PrintWarning("Export %s failed: %s\\n" % (_fmt, _e))
 else:
     App.Console.PrintMessage("Document built. Save manually.\\n")
 
@@ -692,6 +758,24 @@ def emit(spec):
 
     out = MACRO_PREAMBLE.format(part_name=part_name, description=desc)
     out += "\n"
+
+    # Material / metadata in document properties (visible in TechDraw title block)
+    material = spec.get("material")
+    customer = spec.get("customer")
+    part_no = spec.get("part_no")
+    revision = spec.get("revision")
+    if material or customer or part_no or revision:
+        out += "# ---- Metadata for title block ----\n"
+        out += "try:\n"
+        if material:  out += f'    doc.Material = {repr(str(material))}\n'
+        if customer:  out += f'    doc.Comment = {repr(f"Customer: {customer}")}\n'
+        if part_no:   out += f'    doc.Label = {repr(part_no)}\n'
+        out += "except Exception: pass\n"
+
+    # Export formats (consumed by epilogue)
+    formats = spec.get("export_formats") or []
+    if formats:
+        out += f"_export_formats = {repr(list(formats))}\n"
 
     # Datum planes (created before features, can be referenced as "datum:name")
     for dp in body_spec.get("datum_planes", []):

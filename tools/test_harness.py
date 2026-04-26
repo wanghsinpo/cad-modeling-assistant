@@ -68,6 +68,9 @@ EXPECTATIONS = {
     "funnel_loft": {
         "features": ["PartDesign::AdditiveLoft"],
     },
+    "plate_with_slots": {
+        "features": ["PartDesign::Pad", "PartDesign::Pocket"],
+    },
 }
 
 
