@@ -759,6 +759,19 @@ def emit(spec):
     out = MACRO_PREAMBLE.format(part_name=part_name, description=desc)
     out += "\n"
 
+    # Spreadsheet parameter binding (lets user edit one cell → update model)
+    params = spec.get("parameters") or {}
+    if params:
+        out += "# ---- Spreadsheet parameters ----\n"
+        out += "_ss = doc.addObject('Spreadsheet::Sheet', 'Parameters')\n"
+        for i, (key, val) in enumerate(params.items(), start=1):
+            cell_a = f"A{i}"
+            cell_b = f"B{i}"
+            out += f"_ss.set('{cell_a}', {repr(str(key))})\n"
+            out += f"_ss.set('{cell_b}', {repr(str(val))})\n"
+            out += f"_ss.setAlias('{cell_b}', {repr(str(key))})\n"
+        out += "doc.recompute()\n"
+
     # Material / metadata in document properties (visible in TechDraw title block)
     material = spec.get("material")
     customer = spec.get("customer")

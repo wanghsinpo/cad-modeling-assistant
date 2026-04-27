@@ -1,0 +1,52 @@
+{
+  "part_name": "parametric_flange",
+  "description": "Spreadsheet 參數化法蘭 — 改一個 cell 更新整個模型",
+  "units": "mm",
+  "parameters": {
+    "OD": 80,
+    "ID": 30,
+    "thickness": 10,
+    "bolt_count": 4,
+    "bolt_size": "M6"
+  },
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "disk",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [{"type": "circle", "center": [0, 0], "radius": 40}]
+      },
+      "length": 10
+    },
+    "features": [
+      {
+        "type": "Pocket",
+        "name": "center_bore",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [{"type": "circle", "center": [0, 0], "radius": 15}]
+        },
+        "through_all": true
+      },
+      {
+        "type": "Hole",
+        "name": "bolt_seed",
+        "sketch": {
+          "plane": "face:top",
+          "geometry": [{"type": "point", "xy": [28, 0]}]
+        },
+        "thread": {"size": "M6"},
+        "depth": 10
+      },
+      {
+        "type": "PolarPattern",
+        "name": "bolts",
+        "source_features": ["bolt_seed"],
+        "axis": "Z",
+        "angle": 360,
+        "occurrences": 4
+      }
+    ]
+  }
+}

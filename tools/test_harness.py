@@ -71,6 +71,10 @@ EXPECTATIONS = {
     "plate_with_slots": {
         "features": ["PartDesign::Pad", "PartDesign::Pocket"],
     },
+    "parametric_flange": {
+        "features": ["PartDesign::Pad", "PartDesign::Pocket", "PartDesign::Hole",
+                     "PartDesign::PolarPattern"],
+    },
 }
 
 
