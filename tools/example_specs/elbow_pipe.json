@@ -1,0 +1,22 @@
+{
+  "part_name": "elbow_pipe",
+  "description": "管路掃掠 (AdditivePipe) — 圓形截面沿 L 型路徑掃出彎管",
+  "units": "mm",
+  "body": {
+    "base": {
+      "type": "AdditivePipe",
+      "name": "elbow",
+      "profile": {
+        "plane": "XY",
+        "geometry": [{"type": "circle", "center": [0, 0], "radius": 8}]
+      },
+      "path": {
+        "plane": "XZ",
+        "geometry": [
+          {"type": "polyline", "points": [[0, 0], [0, 30], [30, 30]]}
+        ]
+      }
+    },
+    "features": []
+  }
+}

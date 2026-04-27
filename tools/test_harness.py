@@ -75,6 +75,9 @@ EXPECTATIONS = {
         "features": ["PartDesign::Pad", "PartDesign::Pocket", "PartDesign::Hole",
                      "PartDesign::PolarPattern"],
     },
+    "elbow_pipe": {
+        "features": ["PartDesign::AdditivePipe"],
+    },
 }
 
 

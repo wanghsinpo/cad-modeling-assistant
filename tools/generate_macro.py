@@ -417,6 +417,18 @@ def _make_revolution(sketch, axis_name, angle=360, name="Revolution"):
     return rev
 
 
+def _make_pipe(profile_sketch, path_sketch, name="AdditivePipe"):
+    """Pipe additive: sweep profile along path. Both must be sketch objects."""
+    pipe = doc.addObject("PartDesign::AdditivePipe", name)
+    body.addObject(pipe)
+    pipe.Profile = profile_sketch
+    pipe.Spine = path_sketch
+    profile_sketch.Visibility = False
+    path_sketch.Visibility = False
+    doc.recompute()
+    return pipe
+
+
 def _make_loft(sketches, ruled=False, closed=False, name="AdditiveLoft"):
     """Loft additive: sweep between 2+ sketches forming smooth or ruled surface.
     sketches: list of Sketcher objects, first is profile, rest are sections."""
@@ -859,6 +871,17 @@ def _emit_feature(f, name):
             lines.append(f'{feat_var} = _make_hole({sketch_var}, "{size}", {f.get("depth", 10)}, '
                          f'threaded={threaded}, counter_bore={repr(cb)}, '
                          f'counter_sink={repr(cs)}, name="{name}")')
+
+    elif t == "AdditivePipe":
+        # spec: { type: "AdditivePipe", profile: <sketch>, path: <sketch> }
+        prof = f["profile"]; path = f["path"]
+        prof_var = f"sk_{_py_safe(name)}_prof"
+        path_var = f"sk_{_py_safe(name)}_path"
+        lines.append(f'{prof_var} = _make_sketch("{prof_var}", "{prof["plane"]}", '
+                     f'{json.dumps(prof["geometry"])}, {json.dumps(prof.get("constraints", []))})')
+        lines.append(f'{path_var} = _make_sketch("{path_var}", "{path["plane"]}", '
+                     f'{json.dumps(path["geometry"])}, {json.dumps(path.get("constraints", []))})')
+        lines.append(f'feat_{_py_safe(name)} = _make_pipe({prof_var}, {path_var}, name="{name}")')
 
     elif t == "AdditiveLoft":
         # spec: { type: "AdditiveLoft", name: "...", profile: <sketch_def>, sections: [<sketch_defs>], ruled: false, closed: false }
