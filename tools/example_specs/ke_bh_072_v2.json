@@ -99,10 +99,12 @@
   "drawing": {
     "views": ["front", "top", "iso"],
     "dims": [
-      {"type": "od", "value": 90},
-      {"type": "id", "value": 62},
-      {"type": "height", "value": 28.3},
-      {"type": "pcd", "value": 76}
+      {"type": "od", "value": 90, "fit": "h7"},
+      {"type": "id", "value": 62, "fit": "H7"},
+      {"type": "height", "value": 28.3, "tolerance": "±0.05"},
+      {"type": "pcd", "value": 76, "tolerance": "±0.1"},
+      {"type": "thread", "label": "8 x M5 EQ.SP."},
+      {"type": "general", "label": "Unspec. tol: ISO 2768-mK"}
     ]
   }
 }

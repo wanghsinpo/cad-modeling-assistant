@@ -371,8 +371,14 @@ def _make_sketch(name, plane_spec, geometry, constraints=None, face_tag=None):
     # DOF check: warn if sketch under-constrained (best-effort, won't block build)
     try:
         if hasattr(sk, "FullyConstrained") and sk.FullyConstrained is False:
-            App.Console.PrintWarning(
-                "[%s] under-constrained sketch (DOF > 0) — geometry may shift on edits\\n" % name)
+            msg = "[%s] under-constrained sketch (DOF > 0) — geometry may shift on edits\\n" % name
+            if globals().get("STRICT_CONSTRAINTS", False):
+                App.Console.PrintError(msg)
+                raise RuntimeError("Strict mode: " + msg.strip())
+            else:
+                App.Console.PrintWarning(msg)
+    except RuntimeError:
+        raise
     except Exception:
         pass
     return sk
@@ -699,8 +705,16 @@ def _auto_dimension(page, dims):
                     val_str = "%.2f" % float(value) if isinstance(value, (int, float)) else str(value)
             else:
                 val_str = ""
+            # GD&T tolerance support (Q18)
+            tol = dim_spec.get("tolerance")  # e.g. "±0.05" or "+0.025/-0" or "H7"
+            fit = dim_spec.get("fit")        # ISO fit: "H7", "g6", "k6", etc.
+            tol_str = ""
+            if tol:
+                tol_str = " " + tol
+            elif fit:
+                tol_str = " " + fit
             text = custom_label if custom_label else (
-                ("%s %s" % (prefix, val_str)).strip()
+                ("%s %s%s" % (prefix, val_str, tol_str)).strip()
             )
             ann_name = "Dim_%s_%d" % (dtype.upper() or "ANN", idx + 1)
             ann = doc.addObject("TechDraw::DrawViewAnnotation", ann_name)
@@ -770,6 +784,10 @@ def emit(spec):
 
     out = MACRO_PREAMBLE.format(part_name=part_name, description=desc)
     out += "\n"
+
+    # Strict constraint mode (Q12): fail build if any sketch under-constrained
+    if spec.get("strict_constraints"):
+        out += "STRICT_CONSTRAINTS = True\n"
 
     # Spreadsheet parameter binding (lets user edit one cell → update model)
     params = spec.get("parameters") or {}
