@@ -78,6 +78,9 @@ EXPECTATIONS = {
     "elbow_pipe": {
         "features": ["PartDesign::AdditivePipe"],
     },
+    "reverse_engineer_step": {
+        "features": ["PartDesign::Pad"],
+    },
 }
 
 

@@ -1,0 +1,26 @@
+{
+  "part_name": "reverse_engineer_step",
+  "description": "STEP 逆向工程示範 — 匯入 Andy 客戶 STEP 作為參考，旁邊建一個小型 PartDesign Body 用來修改",
+  "units": "mm",
+  "imports": [
+    {
+      "type": "step",
+      "path": "/Users/linda/Downloads/承嘉/KE-BH-072-EV-X-BP-主體.step",
+      "name": "Original_KE-BH-072_Reference"
+    }
+  ],
+  "body": {
+    "base": {
+      "type": "Pad",
+      "name": "modification_disk",
+      "sketch": {
+        "plane": "XY",
+        "geometry": [
+          {"type": "circle", "center": [200, 0], "radius": 20}
+        ]
+      },
+      "length": 5
+    },
+    "features": []
+  }
+}

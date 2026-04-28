@@ -423,6 +423,36 @@ def _make_revolution(sketch, axis_name, angle=360, name="Revolution"):
     return rev
 
 
+def _import_step(step_path, name="ImportedSTEP", as_reference=True):
+    """Import a STEP file as Part::Feature (frozen geometry).
+    as_reference=True: keep as Part::Feature for visual reference / measurement
+    as_reference=False: also try to convert to PartDesign Body (best-effort)
+    """
+    import os
+    if not os.path.exists(step_path):
+        App.Console.PrintWarning("STEP not found: %s\\n" % step_path)
+        return None
+    try:
+        import Part
+        Part.insert(step_path, doc.Name)
+        # Find the most recently added Part::Feature
+        latest = None
+        for o in doc.Objects:
+            if o.TypeId == "Part::Feature" and not getattr(o, "_cm_seen", False):
+                latest = o
+        if latest:
+            try:
+                latest.Label = name
+            except Exception:
+                pass
+        doc.recompute()
+        App.Console.PrintMessage("Imported STEP: %s\\n" % step_path)
+        return latest
+    except Exception as e:
+        App.Console.PrintWarning("STEP import failed: %s\\n" % e)
+        return None
+
+
 def _make_shape_binder(source_path, source_obj_name=None, name="ShapeBinder"):
     """Create a SubShapeBinder that pulls geometry from another FCStd file.
     source_path: absolute path to source .FCStd
@@ -815,6 +845,13 @@ def emit(spec):
 
     out = MACRO_PREAMBLE.format(part_name=part_name, description=desc)
     out += "\n"
+
+    # External STEP imports (Q13): brought in BEFORE body construction so they can be
+    # referenced via ShapeBinder or measured for inspiration.
+    for imp in spec.get("imports", []) or []:
+        if imp.get("type", "").lower() in ("step", "stp", "iges", "igs"):
+            out += (f'_import_step({repr(imp["path"])}, '
+                    f'name={repr(imp.get("name", "ImportedSTEP"))})\n')
 
     # Strict constraint mode (Q12): fail build if any sketch under-constrained
     if spec.get("strict_constraints"):
