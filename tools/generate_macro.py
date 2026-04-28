@@ -423,6 +423,37 @@ def _make_revolution(sketch, axis_name, angle=360, name="Revolution"):
     return rev
 
 
+def _make_shape_binder(source_path, source_obj_name=None, name="ShapeBinder"):
+    """Create a SubShapeBinder that pulls geometry from another FCStd file.
+    source_path: absolute path to source .FCStd
+    source_obj_name: name of the object inside (sketch / body / feature). If None, picks first PartDesign Body or sketch.
+    """
+    sb = doc.addObject("PartDesign::SubShapeBinder", name)
+    body.addObject(sb)
+    try:
+        import os
+        if os.path.exists(source_path):
+            ext_doc = App.openDocument(source_path, hidden=True)
+            target = None
+            if source_obj_name:
+                target = ext_doc.getObject(source_obj_name)
+            if target is None:
+                # Auto: pick first sketch (preferred) or first body
+                for o in ext_doc.Objects:
+                    if "Sketch" in o.TypeId:
+                        target = o; break
+                if target is None:
+                    for o in ext_doc.Objects:
+                        if o.TypeId == "PartDesign::Body":
+                            target = o; break
+            if target:
+                sb.Support = [(target, [""])]
+        doc.recompute()
+    except Exception as e:
+        App.Console.PrintWarning("ShapeBinder failed: %s\\n" % e)
+    return sb
+
+
 def _make_pipe(profile_sketch, path_sketch, name="AdditivePipe"):
     """Pipe additive: sweep profile along path. Both must be sketch objects."""
     pipe = doc.addObject("PartDesign::AdditivePipe", name)
@@ -889,6 +920,13 @@ def _emit_feature(f, name):
             lines.append(f'{feat_var} = _make_hole({sketch_var}, "{size}", {f.get("depth", 10)}, '
                          f'threaded={threaded}, counter_bore={repr(cb)}, '
                          f'counter_sink={repr(cs)}, name="{name}")')
+
+    elif t == "ShapeBinder":
+        # spec: { type: "ShapeBinder", source: "/path/to/file.FCStd", source_obj: "Sketch001" }
+        src = f.get("source", "")
+        src_obj = f.get("source_obj")
+        lines.append(f'feat_{_py_safe(name)} = _make_shape_binder({repr(src)}, '
+                     f'{repr(src_obj)}, name="{name}")')
 
     elif t == "AdditivePipe":
         # spec: { type: "AdditivePipe", profile: <sketch>, path: <sketch> }
